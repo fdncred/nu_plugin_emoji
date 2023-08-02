@@ -1,8 +1,7 @@
 mod emoji;
 use nu_plugin::{serve_plugin, EvaluatedCall, LabeledError, MsgPackSerializer, Plugin};
 use nu_protocol::{Category, PluginExample, PluginSignature, Spanned, SyntaxShape, Value};
-use std::io::BufWriter;
-use std::io::{Read, Write};
+use std::io::Write;
 
 struct Implementation;
 
