@@ -1,4 +1,4 @@
-mod emojis;
+// mod emojis;
 
 use itertools::Itertools;
 use nu_plugin::{serve_plugin, EvaluatedCall, LabeledError, MsgPackSerializer, Plugin};
@@ -6,6 +6,7 @@ use nu_protocol::{Category, PluginExample, PluginSignature, Span, Spanned, Synta
 // use std::ascii::escape_default;
 use std::io::Write;
 // use unicode_segmentation::UnicodeSegmentation;
+// use emojis::*;
 
 struct Implementation;
 
@@ -22,7 +23,7 @@ impl Plugin for Implementation {
             .optional(
                 "emoji-name",
                 SyntaxShape::String,
-                "name of the emoji shorthand with colons before and after",
+                "name of the emoji shorthand with colons before and after e.g. :grinning:",
             )
             .switch("list", "List stuff", Some('l'))
             .category(Category::Experimental)
@@ -50,16 +51,26 @@ impl Plugin for Implementation {
                 let mut vals = vec![];
                 let span = Span::unknown();
                 let em = emoji.as_str().to_string();
-                let cp = emoji.codepoints().to_string();
+
+                let emoji_chars = em.chars().collect::<Vec<char>>();
+                let mut cp = String::new();
+                for c in emoji_chars {
+                    cp.push_str(&format!("{:X} ", c as u32));
+                }
+
                 let na = emoji.name().to_string();
                 let unic = emoji.unicode_version();
                 let gr = emoji.group();
                 let bi = emoji.as_bytes();
                 // let sh = emoji.shortcode();
                 let shc = emoji.shortcodes();
-                let sk = emoji.skin_tone();
-                // let sks = emoji.skin_tones();
-                // let s = emoji.to_string();
+                // let sk = emoji.skin_tone();
+                let mut sks = vec![];
+                if let Some(st) = emoji.skin_tones() {
+                    for s in st {
+                        sks.push(s.as_str());
+                    }
+                };
 
                 cols.push("emoji".to_string());
                 vals.push(Value::String { val: em, span });
@@ -75,7 +86,7 @@ impl Plugin for Implementation {
                     val: format!("{:?}", gr),
                     span,
                 });
-                cols.push("utf-8 encoding".to_string());
+                cols.push("utf8_bytes".to_string());
                 // let mut visible = String::new();
                 // for &b in bi {
                 //     let part: Vec<u8> = escape_default(b).collect();
@@ -104,65 +115,31 @@ impl Plugin for Implementation {
                 // });
 
                 vals.push(Value::String {
-                    // val: format!("{:#X}", bi.iter().map(|&b| b as u32).format(" ")),
                     val: format!("{:X?}", bi),
                     span,
                 });
 
                 cols.push("codepoints".to_string());
-                vals.push(Value::String { val: cp, span });
-                // cols.push("shortcode".to_string());
-                // vals.push(if let Some(sc) = sh {
-                //     Value::String {
-                //         val: sc.to_string(),
-                //         span,
-                //     }
-                // } else {
-                //     Value::Nothing { span }
-                // });
+                vals.push(Value::String {
+                    val: cp.trim().to_string(),
+                    span,
+                });
                 cols.push("shortcodes".to_string());
                 vals.push(Value::String {
                     val: shc.into_iter().join(", "),
                     span,
                 });
-                // vals.push(
-                //     shc.into_iter()
-                //         .fold(Value::Nothing { span }, |acc, sc| Value::List {
-                //             vals: vec![
-                //                 acc,
-                //                 Value::String {
-                //                     val: sc.to_string(),
-                //                     span,
-                //                 },
-                //             ],
-                //             span,
-                //         }),
-                // );
-                cols.push("skin_tone".to_string());
-                vals.push(if let Some(st) = sk {
-                    Value::String {
-                        val: format!("{:?}", st),
-                        span,
-                    }
-                } else {
-                    Value::Nothing { span }
+                // 1F44B       ; fully-qualified # 👋 E0.6 waving hand
+                // 1F44B 1F3FB ; fully-qualified # 👋🏻 E1.0 waving hand: light skin tone
+                // 1F44B 1F3FC ; fully-qualified # 👋🏼 E1.0 waving hand: medium-light skin tone
+                // 1F44B 1F3FD ; fully-qualified # 👋🏽 E1.0 waving hand: medium skin tone
+                // 1F44B 1F3FE ; fully-qualified # 👋🏾 E1.0 waving hand: medium-dark skin tone
+                // 1F44B 1F3FF ; fully-qualified # 👋🏿 E1.0 waving hand: dark skin tone
+                cols.push("skin_tones".to_string());
+                vals.push(Value::String {
+                    val: sks.join(", "),
+                    span,
                 });
-                // cols.push("skin_tones".to_string());
-                // vals.push(
-                //     sks.into_iter()
-                //         .fold(Value::Nothing { span }, |acc, st| Value::List {
-                //             vals: vec![
-                //                 acc,
-                //                 Value::String {
-                //                     val: format!("{:?}", st.collect::<Emoji>()),
-                //                     span,
-                //                 },
-                //             ],
-                //             span,
-                //         }),
-                // );
-                // cols.push("to_string".to_string());
-                // vals.push(Value::String { val: s, span });
                 rec.push(Value::Record { cols, vals, span });
             }
 
