@@ -1,12 +1,9 @@
-// mod emojis;
-
 use itertools::Itertools;
 use nu_plugin::{serve_plugin, EvaluatedCall, LabeledError, MsgPackSerializer, Plugin};
-use nu_protocol::{Category, PluginExample, PluginSignature, Span, Spanned, SyntaxShape, Value};
-// use std::ascii::escape_default;
+use nu_protocol::{
+    record, Category, PluginExample, PluginSignature, Span, Spanned, SyntaxShape, Value,
+};
 use std::io::Write;
-// use unicode_segmentation::UnicodeSegmentation;
-// use emojis::*;
 
 struct Implementation;
 
@@ -27,11 +24,18 @@ impl Plugin for Implementation {
             )
             .switch("list", "List stuff", Some('l'))
             .category(Category::Experimental)
-            .plugin_examples(vec![PluginExample {
-                description: "This is the example descripion".into(),
-                example: "some pipeline involving emoji".into(),
-                result: None,
-            }])]
+            .plugin_examples(vec![
+                PluginExample {
+                    description: "Show the smirk emoji".into(),
+                    example: "emoji :smirk:".into(),
+                    result: None,
+                },
+                PluginExample {
+                    description: "List all known emojis".into(),
+                    example: "emoji --list".into(),
+                    result: None,
+                },
+            ])]
     }
 
     fn run(
@@ -47,8 +51,6 @@ impl Plugin for Implementation {
         if list {
             let mut rec = vec![];
             for emoji in emojis::iter() {
-                let mut cols = vec![];
-                let mut vals = vec![];
                 let span = Span::unknown();
                 let em = emoji.as_str().to_string();
 
@@ -65,6 +67,12 @@ impl Plugin for Implementation {
                 // let sh = emoji.shortcode();
                 let shc = emoji.shortcodes();
                 // let sk = emoji.skin_tone();
+                // 1F44B       ; fully-qualified # 👋 E0.6 waving hand
+                // 1F44B 1F3FB ; fully-qualified # 👋🏻 E1.0 waving hand: light skin tone
+                // 1F44B 1F3FC ; fully-qualified # 👋🏼 E1.0 waving hand: medium-light skin tone
+                // 1F44B 1F3FD ; fully-qualified # 👋🏽 E1.0 waving hand: medium skin tone
+                // 1F44B 1F3FE ; fully-qualified # 👋🏾 E1.0 waving hand: medium-dark skin tone
+                // 1F44B 1F3FF ; fully-qualified # 👋🏿 E1.0 waving hand: dark skin tone
                 let mut sks = vec![];
                 if let Some(st) = emoji.skin_tones() {
                     for s in st {
@@ -72,75 +80,19 @@ impl Plugin for Implementation {
                     }
                 };
 
-                cols.push("emoji".to_string());
-                vals.push(Value::String { val: em, span });
-                cols.push("name".to_string());
-                vals.push(Value::String { val: na, span });
-                cols.push("unicode_version".to_string());
-                vals.push(Value::String {
-                    val: format!("{}.{}", unic.major(), unic.minor()),
+                rec.push(Value::record(
+                    record! {
+                        "emoji" => Value::string(em, span),
+                        "name" => Value::string(na, span),
+                        "unicode_version" => Value::string(format!("{}.{}", unic.major(), unic.minor()), span),
+                        "group" => Value::string(format!("{:?}", gr), span),
+                        "utf8_bytes" => Value::string(format!("{:X?}", bi), span),
+                        "codepoints" => Value::string(cp.trim().to_string(), span),
+                        "shortcodes" => Value::string(shc.into_iter().join(", "), span),
+                        "skin_tones" => Value::string(sks.join(", "), span),
+                    },
                     span,
-                });
-                cols.push("group".to_string());
-                vals.push(Value::String {
-                    val: format!("{:?}", gr),
-                    span,
-                });
-                cols.push("utf8_bytes".to_string());
-                // let mut visible = String::new();
-                // for &b in bi {
-                //     let part: Vec<u8> = escape_default(b).collect();
-                //     visible.push_str(std::str::from_utf8(&part).unwrap());
-                // }
-
-                // let codepoints: Vec<char> = bi.to_vec().into_iter().map(char::from).collect();
-                // vals.push(Value::String {
-                //     val: codepoints.into_iter().join(", "),
-                //     span,
-                // });
-
-                // vals.push(Value::String {
-                //     val: format!("\\U{{{}}}", bi.iter().format(" ")),
-                //     span,
-                // });
-
-                // vals.push(Value::String {
-                //     val: format!("{:X?}", bi),
-                //     span,
-                // });
-
-                // vals.push(Value::String {
-                //     val: char::from_u32(u32::from_ne_bytes(bi)),
-                //     span,
-                // });
-
-                vals.push(Value::String {
-                    val: format!("{:X?}", bi),
-                    span,
-                });
-
-                cols.push("codepoints".to_string());
-                vals.push(Value::String {
-                    val: cp.trim().to_string(),
-                    span,
-                });
-                cols.push("shortcodes".to_string());
-                vals.push(Value::String {
-                    val: shc.into_iter().join(", "),
-                    span,
-                });
-                // 1F44B       ; fully-qualified # 👋 E0.6 waving hand
-                // 1F44B 1F3FB ; fully-qualified # 👋🏻 E1.0 waving hand: light skin tone
-                // 1F44B 1F3FC ; fully-qualified # 👋🏼 E1.0 waving hand: medium-light skin tone
-                // 1F44B 1F3FD ; fully-qualified # 👋🏽 E1.0 waving hand: medium skin tone
-                // 1F44B 1F3FE ; fully-qualified # 👋🏾 E1.0 waving hand: medium-dark skin tone
-                // 1F44B 1F3FF ; fully-qualified # 👋🏿 E1.0 waving hand: dark skin tone
-                cols.push("skin_tones".to_string());
-                vals.push(Value::String {
-                    val: sks.join(", "),
-                    span,
-                });
-                rec.push(Value::Record { cols, vals, span });
+                ))
             }
 
             return Ok(Value::List {
@@ -166,29 +118,6 @@ impl Plugin for Implementation {
                 span: Some(call.head),
             });
         }
-        // let ret_val = match input {
-        //     Value::String { val, span } => {
-        //         let emoji = replace(val).map_err(|op| LabeledError {
-        //             label: "Error in emoji plugin".into(),
-        //             msg: format!("Error in emoji plugin: {}", op),
-        //             span: Some(*span),
-        //         })?;
-        //         Value::String {
-        //             val: emoji,
-        //             span: *span,
-        //         }
-        //     }
-        //     //crate::emoji::emoji_do_something(param, val, *span)?,
-        //     v => {
-        //         return Err(LabeledError {
-        //             label: "Expected something from pipeline".into(),
-        //             msg: format!("requires some input, got {}", v.get_type()),
-        //             span: Some(call.head),
-        //         });
-        //     }
-        // };
-
-        // Ok(ret_val)
     }
 }
 
