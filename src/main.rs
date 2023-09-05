@@ -95,10 +95,7 @@ impl Plugin for Implementation {
                 ))
             }
 
-            return Ok(Value::List {
-                vals: rec,
-                span: call.head,
-            });
+            return Ok(Value::list(rec, call.head));
         }
 
         if let Some(emoj) = param {
@@ -107,10 +104,7 @@ impl Plugin for Implementation {
                 msg: format!("Error in emoji plugin: {}", op),
                 span: Some(emoj.span),
             })?;
-            return Ok(Value::String {
-                val: emoji,
-                span: emoj.span,
-            });
+            return Ok(Value::string(emoji, emoj.span));
         } else {
             return Err(LabeledError {
                 label: "Expected something from pipeline".into(),
