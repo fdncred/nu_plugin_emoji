@@ -10,10 +10,10 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-emojis = "0.6.0"
-itertools = "0.11.0"
+emojis = "0.6.1"
+itertools = "0.12.0"
 # for local development, you can use a path dependency
-nu-plugin = { path = "../nushell/crates/nu-plugin", version = "0.84.1" }
-nu-protocol = { path = "../nushell/crates/nu-protocol", version = "0.84.1" }
+nu-plugin = { path = "../nushell/crates/nu-plugin", version = "0.87.1" }
+nu-protocol = { path = "../nushell/crates/nu-protocol", version = "0.87.1" }
 # nu-plugin = "0.80.0"
 # nu-protocol = "0.80.0"
