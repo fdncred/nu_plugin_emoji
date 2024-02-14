@@ -47,7 +47,7 @@ impl Plugin for Implementation {
     ) -> Result<Value, LabeledError> {
         assert_eq!(name, "emoji");
         let param: Option<Spanned<String>> = call.opt(0)?;
-        let list = call.has_flag("list");
+        let list = call.has_flag("list")?;
 
         if list {
             let mut rec = vec![];
