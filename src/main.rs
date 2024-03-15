@@ -1,23 +1,28 @@
 use itertools::Itertools;
 use nu_plugin::{
     serve_plugin, EngineInterface, EvaluatedCall, LabeledError, MsgPackSerializer, Plugin,
+    PluginCommand, SimplePluginCommand,
 };
 use nu_protocol::{
     record, Category, PluginExample, PluginSignature, Span, Spanned, SyntaxShape, Value,
 };
 use std::io::Write;
 
-struct Implementation;
+struct EmojiPlugin;
 
-impl Implementation {
-    fn new() -> Self {
-        Self {}
+impl Plugin for EmojiPlugin {
+    fn commands(&self) -> Vec<Box<dyn PluginCommand<Plugin = Self>>> {
+        vec![Box::new(Emoji)]
     }
 }
 
-impl Plugin for Implementation {
-    fn signature(&self) -> Vec<PluginSignature> {
-        vec![PluginSignature::build("emoji")
+struct Emoji;
+
+impl SimplePluginCommand for Emoji {
+    type Plugin = EmojiPlugin;
+
+    fn signature(&self) -> PluginSignature {
+        PluginSignature::build("emoji")
             .usage("Create emojis from text")
             .optional(
                 "emoji-name",
@@ -37,17 +42,16 @@ impl Plugin for Implementation {
                     example: "emoji --list".into(),
                     result: None,
                 },
-            ])]
+            ])
     }
 
     fn run(
         &self,
-        name: &str,
+        _plugin: &EmojiPlugin,
         _engine: &EngineInterface,
         call: &EvaluatedCall,
         _input: &Value,
     ) -> Result<Value, LabeledError> {
-        assert_eq!(name, "emoji");
         let param: Option<Spanned<String>> = call.opt(0)?;
         let list = call.has_flag("list")?;
 
@@ -119,7 +123,7 @@ impl Plugin for Implementation {
 }
 
 fn main() {
-    serve_plugin(&mut Implementation::new(), MsgPackSerializer);
+    serve_plugin(&EmojiPlugin, MsgPackSerializer);
 }
 
 fn replace(mut s: &str) -> Result<String, std::io::Error> {
