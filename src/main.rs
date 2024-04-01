@@ -1,10 +1,10 @@
 use itertools::Itertools;
 use nu_plugin::{
-    serve_plugin, EngineInterface, EvaluatedCall, LabeledError, MsgPackSerializer, Plugin,
-    PluginCommand, SimplePluginCommand,
+    serve_plugin, EngineInterface, EvaluatedCall, MsgPackSerializer, Plugin, PluginCommand,
+    SimplePluginCommand,
 };
 use nu_protocol::{
-    record, Category, PluginExample, PluginSignature, Span, Spanned, SyntaxShape, Value,
+    record, Category, Example, LabeledError, Signature, Span, Spanned, SyntaxShape, Value,
 };
 use std::io::Write;
 
@@ -21,9 +21,16 @@ struct Emoji;
 impl SimplePluginCommand for Emoji {
     type Plugin = EmojiPlugin;
 
-    fn signature(&self) -> PluginSignature {
-        PluginSignature::build("emoji")
-            .usage("Create emojis from text")
+    fn name(&self) -> &str {
+        "emoji"
+    }
+
+    fn usage(&self) -> &str {
+        "Create emojis from text."
+    }
+
+    fn signature(&self) -> Signature {
+        Signature::build(PluginCommand::name(self))
             .optional(
                 "emoji-name",
                 SyntaxShape::String,
@@ -31,18 +38,21 @@ impl SimplePluginCommand for Emoji {
             )
             .switch("list", "List stuff", Some('l'))
             .category(Category::Experimental)
-            .plugin_examples(vec![
-                PluginExample {
-                    description: "Show the smirk emoji".into(),
-                    example: "emoji :smirk:".into(),
-                    result: None,
-                },
-                PluginExample {
-                    description: "List all known emojis".into(),
-                    example: "emoji --list".into(),
-                    result: None,
-                },
-            ])
+    }
+
+    fn examples(&self) -> Vec<Example> {
+        vec![
+            Example {
+                description: "Show the smirk emoji".into(),
+                example: "emoji :smirk:".into(),
+                result: None,
+            },
+            Example {
+                description: "List all known emojis".into(),
+                example: "emoji --list".into(),
+                result: None,
+            },
+        ]
     }
 
     fn run(
@@ -106,18 +116,14 @@ impl SimplePluginCommand for Emoji {
         }
 
         if let Some(emoj) = param {
-            let emoji = replace(&emoj.item).map_err(|op| LabeledError {
-                label: "Error in emoji plugin".into(),
-                msg: format!("Error in emoji plugin: {}", op),
-                span: Some(emoj.span),
+            let emoji = replace(&emoj.item).map_err(|op| {
+                LabeledError::new(format!("Error in emoji plugin: {}", op))
+                    .with_label("Error in emoji plugin", emoj.span)
             })?;
             return Ok(Value::string(emoji, emoj.span));
         } else {
-            return Err(LabeledError {
-                label: "Expected something from pipeline".into(),
-                msg: format!("requires some input, got None"),
-                span: Some(call.head),
-            });
+            return Err(LabeledError::new("requires some input, got None")
+                .with_label("Expected something from pipeline", call.head));
         }
     }
 }
