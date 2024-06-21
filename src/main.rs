@@ -11,6 +11,10 @@ use std::io::Write;
 struct EmojiPlugin;
 
 impl Plugin for EmojiPlugin {
+    fn version(&self) -> String {
+        env!("CARGO_PKG_VERSION").into()
+    }
+
     fn commands(&self) -> Vec<Box<dyn PluginCommand<Plugin = Self>>> {
         vec![Box::new(Emoji)]
     }
