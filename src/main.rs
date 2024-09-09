@@ -29,7 +29,7 @@ impl SimplePluginCommand for Emoji {
         "emoji"
     }
 
-    fn description(&self) -> &str {
+    fn usage(&self) -> &str {
         "Create emojis from text."
     }
 
