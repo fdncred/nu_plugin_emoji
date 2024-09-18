@@ -1031,7 +1031,7 @@ dependencies = [
 
 [[package]]
 name = "nu_plugin_emoji"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "emojis",
  "itertools 0.13.0",
