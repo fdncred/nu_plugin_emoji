@@ -2,7 +2,7 @@
 name = "nu_plugin_emoji"
 version = "0.13.0"
 authors = ["Darren Schroeder"]
-edition = "2021"
+edition = "2024"
 repository = "https://github.com/fdncred/nu_plugin_emoji"
 description = "a nushell plugin called emoji"
 license = "MIT"
@@ -11,9 +11,9 @@ license = "MIT"
 
 [dependencies]
 # nushell dependencies
-nu-plugin = "0.104.0"
-nu-protocol = "0.104.0"
-nu-path = "0.104.0"
+nu-plugin = "0.105.1"
+nu-protocol = "0.105.1"
+nu-path = "0.105.1"
 
 # for local development, you can use a path dependency
 # nu-plugin = { path = "../nushell/crates/nu-plugin", version = "0.98.0" }
@@ -24,7 +24,7 @@ emojis = "0.6.4"
 itertools = "0.14.0"
 
 [dev-dependencies]
-nu-plugin-test-support = "0.104.0"
+nu-plugin-test-support = "0.105.1"
 # nu-plugin-test-support = { path = "../nushell/crates/nu-plugin-test-support" }
 
 [profile.release]
