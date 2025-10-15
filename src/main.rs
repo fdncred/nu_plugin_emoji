@@ -1,10 +1,10 @@
 use itertools::Itertools;
 use nu_plugin::{
-    serve_plugin, EngineInterface, EvaluatedCall, MsgPackSerializer, Plugin, PluginCommand,
-    SimplePluginCommand,
+    EngineInterface, EvaluatedCall, MsgPackSerializer, Plugin, PluginCommand, SimplePluginCommand,
+    serve_plugin,
 };
 use nu_protocol::{
-    record, Category, Example, LabeledError, Signature, Span, Spanned, SyntaxShape, Value,
+    Category, Example, LabeledError, Signature, Span, Spanned, SyntaxShape, Value, record,
 };
 use std::io::Write;
 
@@ -44,7 +44,7 @@ impl SimplePluginCommand for Emoji {
             .category(Category::Experimental)
     }
 
-    fn examples(&self) -> Vec<Example> {
+    fn examples(&self) -> Vec<Example<'_>> {
         vec![
             Example {
                 description: "Show the smirk emoji".into(),
