@@ -23,10 +23,6 @@ nu-path = "0.117.0"
 emojis = "0.9.0"
 itertools = "0.15.0"
 
-[dev-dependencies]
-nu-plugin-test-support = "0.117.0"
-# nu-plugin-test-support = { path = "../nushell/crates/nu-plugin-test-support" }
-
 [profile.release]
 opt-level = "s"     # Optimize for size
 strip = "debuginfo"
